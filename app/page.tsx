@@ -1,15 +1,7 @@
 "use client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { z } from "zod";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as XLSX from "xlsx";
@@ -17,9 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { main } from "./utility/dutyCalculator.js";
-import { Car } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Alert, AlertTitle } from "@/components/ui/alert";
 
 
 export default function Home() {
@@ -71,32 +61,8 @@ export default function Home() {
       return;
     }
   }
-  // Handle form submission
-  // async function onSubmit(values: z.infer<typeof formSchema>) {
-  //   console.log("Submit", values,file);
-  //   const matrix = await main(values.teachers, values.shifts,values.arrayValues);
-  //   const shiftNames = values.shiftDates;
-  //   console.log(matrix,shiftNames)
-  //   console.log("log checks")
-  //   // console.log(a);
-  //   // const reader = new FileReader();
-  //   // reader.onload =(e) =>{
-  //   //   console.log("log checks2")
-  //   //   const result = e.target?.result
-  //   //   const workbook = XLSX.read(result,{type:'binary'})
-  //   //   const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-  //   //   // const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 2 });
-  //   //   // const teachersList = jsonData.flat() as string[]; // Assuming first column is teacher names
-  //   //   // console.log(teachersList)
-  //   //   XLSX.utils.sheet_add_aoa(worksheet, [shiftNames], {origin: {r: 1, c: 3}});XLSX.writeFile(workbook, "Timetable.xlsx");
-  //   //   XLSX.utils.sheet_add_aoa(worksheet, matrix, {origin: {r: 2, c: 3}});XLSX.writeFile(workbook, "Timetable.xlsx");
-  //   // }
-  //   // reader.onerror = () => {
-  //   //   // setFileError("Error reading the file. Please try again.");
-  //   //   console.log("Error")
-  //   // };
-  //   // reader.readAsBinaryString(file);
-  // }
+  
+  //Handle Form Submission
   function toExcelCellName(row:number, col:number):String {
     let columnName = '';
     while (col >= 0) {
