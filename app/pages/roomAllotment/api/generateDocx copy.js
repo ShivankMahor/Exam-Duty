@@ -1,4 +1,4 @@
-import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, HeightRule} from "docx";
+import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, HeightRule, VerticalAlign} from "docx";
 
 export default async function generateDocx(dutyData,shiftNames){
 	console.log("dutyData in generateDocx2:",dutyData)
@@ -9,63 +9,122 @@ export default async function generateDocx(dutyData,shiftNames){
 				children: [
 					new TableCell({
 						children: [
-							new Paragraph({ text: "S No.", bold:true, alignment: AlignmentType.CENTER }),
+							new Paragraph({
+								children: [
+									new TextRun({
+											text: "S. No.",
+											bold: true,
+											size: 20,
+									}),
+								],
+								alignment: AlignmentType.CENTER,
+								verticalAlign: AlignmentType.CENTER
+							})
 						],
+						verticalAlign: AlignmentType.CENTER,
 						width: { size: 5, type: WidthType.PERCENTAGE },
-						verticalAlign: AlignmentType.CENTER,
 					}),
 					new TableCell({
 						children: [
 							new Paragraph({
-								text: "Room No.",
-								bold:true,
+								children: [
+									new TextRun({
+											text: "Room No",
+											bold: true,
+											size: 20,
+									}),
+								],
 								alignment: AlignmentType.CENTER,
-							}),
+								verticalAlign: AlignmentType.CENTER
+							})
 						],
+						verticalAlign: AlignmentType.CENTER,
 						width: { size: 12, type: WidthType.PERCENTAGE },
-						verticalAlign: AlignmentType.CENTER,
 					}),
 					new TableCell({
 						children: [
-							new Paragraph({ text: "Floor", bold:true, alignment: AlignmentType.CENTER }),
+							new Paragraph({
+								children: [
+									new TextRun({
+											text: "Floor",
+											bold: true,
+											size: 20,
+									}),
+								],
+								alignment: AlignmentType.CENTER,
+								verticalAlign: AlignmentType.CENTER
+							})
 						],
+						verticalAlign: AlignmentType.CENTER,
 						width: { size: 8, type: WidthType.PERCENTAGE },
-						verticalAlign: AlignmentType.CENTER,
 					}),
 					new TableCell({
 						children: [
 							new Paragraph({
-								text: "Invigilator",
-								bold:true,
+								children: [
+									new TextRun({
+											text: "Invigilator",
+											bold: true,
+											size: 20,
+									}),
+								],
 								alignment: AlignmentType.CENTER,
-							}),
+								verticalAlign: AlignmentType.CENTER
+							})
 						],
+						verticalAlign: AlignmentType.CENTER,
 						width: { size: 30, type: WidthType.PERCENTAGE },
-						verticalAlign: AlignmentType.CENTER,
-					}),
-					new TableCell({
-						children: [
-							new Paragraph({ text: "Signature", bold:true, alignment: AlignmentType.CENTER }),
-						],
-						width: { size: 15, type: WidthType.PERCENTAGE },
-						verticalAlign: AlignmentType.CENTER,
 					}),
 					new TableCell({
 						children: [
 							new Paragraph({
-								text: "Reporting Time", bold:true,
+								children: [
+									new TextRun({
+											text: "Signature",
+											bold: true,
+											size: 20,
+									}),
+								],
 								alignment: AlignmentType.CENTER,
-							}),
+								verticalAlign: AlignmentType.CENTER
+							})
 						],
-						width: { size: 15, type: WidthType.PERCENTAGE },
 						verticalAlign: AlignmentType.CENTER,
+						width: { size: 15, type: WidthType.PERCENTAGE },
 					}),
 					new TableCell({
 						children: [
-							new Paragraph({ text: "Remarks", bold:true, alignment: AlignmentType.CENTER }),
+							new Paragraph({
+								children: [
+									new TextRun({
+											text: "Reporting Time",
+											bold: true,
+											size: 20,
+									}),
+								],
+								alignment: AlignmentType.CENTER,
+								verticalAlign: AlignmentType.CENTER
+							})
 						],
-						width: { size: 15, type: WidthType.PERCENTAGE },
 						verticalAlign: AlignmentType.CENTER,
+						width: { size: 15, type: WidthType.PERCENTAGE },
+					}),
+					new TableCell({
+						children: [
+							new Paragraph({
+								children: [
+									new TextRun({
+											text: "Remark",
+											bold: true,
+											size: 20,
+									}),
+								],
+								alignment: AlignmentType.CENTER,
+								verticalAlign: AlignmentType.CENTER
+							})
+						],
+						verticalAlign: AlignmentType.CENTER,
+						width: { size: 15, type: WidthType.PERCENTAGE },
 					}),
 				],
 			}),
@@ -202,35 +261,64 @@ export default async function generateDocx(dutyData,shiftNames){
             alignment: AlignmentType.CENTER,
         }),
         new Paragraph({
-            text: "DUTY CHART OF MID-I SEMESTER EXAMINATION SEPTEMBER-2024",
-            bold: true,
+            children: [
+                new TextRun({
+                    text: "भारतीय सूचना प्रौद्योगिकी संस्थान सोनीपत ",
+                    bold: true,
+                    size: 26,
+                }),
+            ],
             alignment: AlignmentType.CENTER,
         }),
         new Paragraph({
-            text: "Date: 18.09.2024 to 20.09.2024, Time: 09:30 AM to 10:30 AM (1st Shift), 12:00 NN to 01:00 PM (2nd Shift), 3:00 PM to 04:00 PM (3rd Shift)",
-            alignment: AlignmentType.CENTER,
-        }),
-        new Paragraph({ text: " " }),
-
-        // Table or content specific to this shift
-				new Paragraph({ 
-					children :[ 
-						new TextRun ({
-							text: shiftNames[shiftIndex],
-							alignment:AlignmentType.CENTER, 
-							bold:true
-						})
+					children: [
+						new TextRun({
+							text: "(An Autonomous Institute of National Importance under Act of Parliament)",
+							bold: true,
+							size: 22,
+						}),
 					],
+					alignment: AlignmentType.CENTER,
+        }),
+        new Paragraph({
+					children: [
+						new TextRun({
+							text: "Phone: +91 1302987921, Email: sonepatiiit@gmail.com, website: www.iiitsonepat.ac.in ",
+						}),
+					],
+					alignment: AlignmentType.CENTER,
+        }),
+				new Paragraph({ text: "" }),
+				new Paragraph({ text: "" }),
+        new Paragraph({
+					text: "DUTY CHART OF MID-I SEMESTER EXAMINATION SEPTEMBER-2024",
+					bold: true,
+					alignment: AlignmentType.CENTER,
+        }),
+        new Paragraph({
+					text: "Date: 18.09.2024 to 20.09.2024, Time: 09:30 AM to 10:30 AM (1st Shift), 12:00 NN to 01:00 PM (2nd Shift), 3:00 PM to 04:00 PM (3rd Shift)",
+					alignment: AlignmentType.CENTER,
+        }),
+
+				new Paragraph({ text: " " }),
+				new Paragraph({
+					children: [
+						new TextRun({
+							text: shiftNames[shiftIndex],
+							bold: true,
+							size: 20,
+						}),
+					],
+					alignment: AlignmentType.CENTER,
 				}),
         new Table({
             rows: ShiftTable[shiftIndex], // Assuming shift has tableRows specific to each duty
             width: {
-                size: 100,
-                type: WidthType.PERCENTAGE,
+							size: 100,
+							type: WidthType.PERCENTAGE,
             },
         }),
-
-        // Bottom text
+				new Paragraph({ text: " " }),
         new Paragraph({
             text: "Reporting Time- 9.00 a.m.",
             bold: true,
@@ -257,18 +345,18 @@ export default async function generateDocx(dutyData,shiftNames){
             text: "Mr. Mukesh Khatri",
             size: 11,
         }),
-
+				new Paragraph({ text: " " }),
         // Bottom-right text
         new Paragraph({
-            children: [
-                new TextRun({
-                    text: `Generated on 15.09.2024 - Shift #${shiftIndex + 1}`, // Customize text for each shift
-                    italic: true,
-                    size: 24,
-                }),
-            ],
-            alignment: AlignmentType.RIGHT,
-        }),
+					children: [
+							new TextRun({
+									text: "InCharge- Examinations",
+									bold: true,
+									size: 20,
+							}),
+					],
+					alignment: AlignmentType.RIGHT,
+			}),
     ],
 }));
 
