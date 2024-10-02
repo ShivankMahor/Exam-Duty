@@ -130,7 +130,6 @@ export default async function generateDocx(dutyData,shiftNames){
 			}),
 		];
 		
-		// // Function to add rows with merged cells
 		let serialNo = 1;
 		
 			shift.forEach((room,roomIndex)=>{
@@ -320,40 +319,40 @@ export default async function generateDocx(dutyData,shiftNames){
         }),
 				new Paragraph({ text: " " }),
         new Paragraph({
-            text: "Reporting Time- 9.00 a.m.",
-            bold: true,
-            size: 11,
+					text: "Reporting Time- 9.00 a.m.",
+					bold: true,
+					size: 11,
         }),
         new Paragraph({
-            text: "Venue- Examination room, Ground Floor.",
-            bold: true,
-            size: 11,
+					text: "Venue- Examination room, Ground Floor.",
+					bold: true,
+					size: 11,
         }),
         new Paragraph({
-            text: "Backup",
-            size: 11,
+					text: "Backup",
+					size: 11,
         }),
         new Paragraph({
-            text: "Mr. Monty Antil",
-            size: 11,
+					text: "Mr. Monty Antil",
+					size: 11,
         }),
         new Paragraph({
-            text: "Mr. Mohit Antil",
-            size: 11,
+					text: "Mr. Mohit Antil",
+					size: 11,
         }),
         new Paragraph({
-            text: "Mr. Mukesh Khatri",
-            size: 11,
+					text: "Mr. Mukesh Khatri",
+					size: 11,
         }),
 				new Paragraph({ text: " " }),
         // Bottom-right text
         new Paragraph({
 					children: [
-							new TextRun({
-									text: "InCharge- Examinations",
-									bold: true,
-									size: 20,
-							}),
+						new TextRun({
+							text: "InCharge- Examinations",
+							bold: true,
+							size: 20,
+						}),
 					],
 					alignment: AlignmentType.RIGHT,
 			}),
