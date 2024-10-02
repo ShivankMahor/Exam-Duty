@@ -1,4 +1,5 @@
 "use client";
+import axios from 'axios';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,17 +13,24 @@ import { useForm } from "react-hook-form"
 import * as XLSX from "xlsx";
 import { array, z } from "zod"
 import { Separator } from "@/components/ui/separator";
-import { assignTeachers } from '../utility/roomDutyCalculator'
+import { assignTeachers } from '../../utility/roomDutyCalculator'
 
 type Teacher = {
   name: string;
   assignedShifts: number[];
 };
+type FileType = {
+	Teacher: Teacher[]
+	shiftNames: String[]
+}
 
 export default function RoomAllotment(){
-	const [shifts, setShifts] = useState<number | undefined>(1);
+	const [shifts, setShifts] = useState<number | undefined>();
+	const [shiftNameArray, setShiftNameArray] = useState<String[] | undefined>([""])
 	const [rooms, setRooms] = useState<number | undefined>(1);
   const [file, setFile] = useState<File | null>(null);
+	const [teacherData, setTeacherData] = useState<Teacher[]>([])
+	const [updatedValues, setUpdatedValues] = useState<any>([])
 	const formSchema = z.object({
 		roomCount: z.number().min(1,{message:"Atleast 1 Room required"}),
 		shiftCount: z.number().min(1,{message:"Atleast 1 Shift required"}),
@@ -41,10 +49,10 @@ export default function RoomAllotment(){
 			shiftCount: 1,
 			initialRoomData : [
 				{
-					roomNo : undefined,
-					roomFloor : undefined,
-					requiredFaculty : undefined,
-					facultyRequired : Array(shifts).fill(1),
+					roomNo : 1,
+					roomFloor : 1,
+					requiredFaculty : 2,
+					facultyRequired : Array(shifts).fill(2),
 				}
 			],
 		}
@@ -59,11 +67,12 @@ export default function RoomAllotment(){
 		console.log("correctedValues After: ",correctedValues)
 		return correctedValues
 	}
-	async function readFileValues(): Promise<Teacher[]> {
+	async function readFileValues(file:File): Promise<FileType> {
 		return new Promise((resolve, reject) => {
 			const Teachers: Teacher[] = [];
+			const shiftNames:String[] = []
 			const reader = new FileReader();
-	
+			
 			reader.onload = (e) => {
 				const result = e.target?.result;
 				if (!result) {
@@ -81,7 +90,10 @@ export default function RoomAllotment(){
 				const range = XLSX.utils.decode_range(worksheet['!ref']);
 				const lastRow = range.e.r;
 				const lastCol = range.e.c;
-	
+				for(let i = 3;i<lastCol;i++){
+					const NameAddress = XLSX.utils.encode_cell({ r: 1, c: i });
+					shiftNames.push(worksheet[NameAddress].v)
+				}
 				// Process rows and columns
 				for (let i = 2; i <= lastRow - 2; i++) {
 					const assignedShifts = [];
@@ -102,8 +114,9 @@ export default function RoomAllotment(){
 						Teachers.push({ name: Name, assignedShifts });
 					}
 				}
-	
-				resolve(Teachers); // Resolve the promise with Teachers array
+				const resultsData = {Teacher : Teachers, shiftNames}
+				console.log("resultsData:",resultsData)
+				resolve(resultsData); // Resolve the promise with Teachers array
 			};
 	
 			reader.onerror = () => {
@@ -174,27 +187,52 @@ export default function RoomAllotment(){
 	// }
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		const updatedValues = await updateCounts(values)
-		// const teachers = [
-		// 	{ name: "Dr. Diddi Kumara Swamy", assignedShifts: [0, 1, 1] },
-		// 	{ name: "Dr. Sourabh Jain", assignedShifts: [0, 1, 1] },
-		// ];
-		const teachers = await readFileValues();
-		if (!teachers.length) {
-			console.error("No teachers found in the file");
-			return;
-		}
-		// console.log("Output prev",updatedValues);
-		// const teachers = [...Teachers];
-		const roomsValue = [...updatedValues] 
-		console.log("Output after rooms",roomsValue);
+		setUpdatedValues(updatedValues)
+		const tempTeachers = JSON.parse(JSON.stringify(teacherData)); 
+		const temp = JSON.parse(JSON.stringify(updatedValues)); 
+		const result = await assignTeachers(tempTeachers,temp)
+		console.log("Prev Data",teacherData,result,updatedValues)
 
-		console.log("teachers prev:",teachers);
-		const result = await assignTeachers(teachers,roomsValue)
-		console.log("Final Result :" , result)
+		const dutyData = shiftNameArray?.map((_, shiftIndex) => {
+			const x = result.map((room: any, roomIndex: number) => {
+				if (room.allotedTeachers[shiftIndex].length === 0) {
+					return null;  // Return null instead of nothing
+				}
+				return {
+					roomNo: room.roomNo,
+					floor: room.roomFloor,
+					invigilators: room.allotedTeachers[shiftIndex],
+				};
+			}).filter((item:any) => item !== null);  // Filter out null values
+		
+			return x;
+		});
+		console.log("DUty data in frontend",dutyData)
+		try {
+      const response = await axios.post('http://localhost:3000/pages/roomAllotment/api', 
+				{
+					dutyData,
+					shiftNameArray
+				},
+				{ // Important for handling binary data
+        	responseType: 'blob',
+				}
+			);
+
+      // Create a URL for the file and trigger the download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'DutyChart.docx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Error while downloading the file:', error);
+    }		
   }
 	
 	useEffect(() => {
-			const shiftCount = form.getValues("shiftCount");
 			const initialRoomData = form.getValues("initialRoomData").map((room) => {
 				let updatedFacultyRequired = [...room.facultyRequired];
 				console.log("updatedFacultyRequired before tt: ",updatedFacultyRequired,shifts)
@@ -239,7 +277,7 @@ export default function RoomAllotment(){
 		});
 	},[rooms,form])
 
-	function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>){
+	async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>){
     const file = e.target.files?.[0];
     if(file){
       console.log(file)
@@ -253,6 +291,15 @@ export default function RoomAllotment(){
       alert("Please upload a valid Excel (.xlsx) file")
       return;
     }
+
+		const teachersData = await readFileValues(file)
+		console.log("teachersData:",teachersData)
+		if(teachersData.shiftNames.length === 0){
+			console.error("Shift Names not defined")
+		}
+		setShifts(teachersData.shiftNames.length)
+		setShiftNameArray(teachersData.shiftNames)
+		setTeacherData(teachersData.Teacher)
   }
 	return (
 		<div className="min-h-screen flex justify-center items-center">
@@ -289,7 +336,7 @@ export default function RoomAllotment(){
 											</FormItem>
 										)}
 									/>
-									<FormField
+									{/* <FormField
 										control={form.control}
 										name="shiftCount"
 										render={({field})=>(
@@ -306,13 +353,14 @@ export default function RoomAllotment(){
 															field.onChange(val); 
 															setShifts(val)
 														}}
+														contentEditable={false}
 													/>
 												</FormControl>
 												<FormDescription>Enter the total number shifts.</FormDescription>
 												<FormMessage/>
 											</FormItem>
 										)}
-									/>
+									/> */}
 									 <FormField
                     control={form.control}
                     name="teacherDutyFile"
@@ -348,13 +396,13 @@ export default function RoomAllotment(){
 										<Card key={roomIndex*10} className="mb-2">
 											<h1 className="px-4 p-2">Room {roomIndex+1}</h1>
 											<Separator/>
-											<CardContent className="-mx-2 flex gap-4">
-												<div>
+											<CardContent className="-mx-2 gap-4">
+												<div className="grid grid-cols-3 gap-4">
 													<FormField
 														control={form.control}
 														name={`initialRoomData.${roomIndex}.roomNo`}
 														render={({field})=>(
-															<FormItem className="w-56 flex space-x-2 items-center mt-2">
+															<FormItem className="flex space-x-2 items-center mt-2">
 																<FormLabel className="min-w-fit pt-2">Room Number</FormLabel>
 																<FormControl>
 																	<Input
@@ -372,14 +420,13 @@ export default function RoomAllotment(){
 																<FormMessage/>
 															</FormItem>
 														)}
-														/>
+													/>
 													<FormField
 														control={form.control}
 														name={`initialRoomData.${roomIndex}.requiredFaculty`}
 														render={({field})=>(
-															<FormItem className="w-56 items-center">
-																<div className="w-56 flex items-center mt-2">
-																<FormLabel className="min-w-fit pr-2">Faculty Required</FormLabel>
+															<FormItem className="flex space-x-2 items-center mt-2">
+																<FormLabel className="min-w-fit pt-2">Faculty Required</FormLabel>
 																<FormControl>
 																	<Input
 																		type="number"
@@ -393,16 +440,15 @@ export default function RoomAllotment(){
 																		}}
 																	/>
 																</FormControl>
-																</div>
 																<FormMessage/>
 															</FormItem>
 														)}
-														/>
+													/>
 													<FormField
 														control={form.control}
 														name={`initialRoomData.${roomIndex}.roomFloor`}
 														render={({field})=>(
-															<FormItem className="w-56 flex space-x-2 items-center -mb-2">
+															<FormItem className="flex space-x-2 items-center -mb-2">
 																<FormLabel className="min-w-fit pt-2">Floor</FormLabel>
 																<FormControl>
 																	<Input
@@ -421,7 +467,7 @@ export default function RoomAllotment(){
 																<FormMessage/>
 															</FormItem>
 														)}
-														/>
+													/>
 												</div>												
 												<div>
 													<Card className="grid mt-4">	
@@ -430,17 +476,17 @@ export default function RoomAllotment(){
 														<CardDescription className="text-sm">Teachers will be allocated to rooms for the selected shifts only</CardDescription>
 													</div>
 													<Separator/>
-													<ScrollArea className="w-[600px]">
-													<div className="px-4 p-2 flex gap-4 items-center h-16">
-														Shifts
-														{Array.from({length:shifts},(_,shiftIndex)=>(
+													<ScrollArea className={`w-fit ${shiftNameArray && shiftNameArray?.length <= 8 ? 'h-fit' : 'h-[120px]'}`}>
+													<div className="px-4 p-2 flex flex-wrap gap-4 items-center h-16">
+														
+														{shiftNameArray && Array.from({length:shifts},(_,shiftIndex)=>(
 															<FormField
 																key={shiftIndex}
 																control={form.control}
 																name={`initialRoomData.${roomIndex}.facultyRequired.${shiftIndex}`}
 																render={({field})=>(
-																	<div className="flex flex-col justify-center items-center">
-																		<h1>{shiftIndex+1}</h1>
+																	<div className="flex flex-col justify-center items-center space-y-1">
+																		<h3 className="text-sm">{shiftNameArray[shiftIndex]}</h3>
 																		<Checkbox
 																			checked={field.value !== 0}
 																			onCheckedChange={(checked) => {

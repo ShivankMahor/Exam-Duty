@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { main } from "./utility/dutyCalculator.js";
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.jsx";
 
 
 export default function Home() {
@@ -20,7 +21,7 @@ export default function Home() {
     teacherFile: z.any(),
     shifts: z.number().min(1, { message: "Size must be at least 1" }),
     arrayValues: z.array(z.number({required_error: "Faculty no is required",invalid_type_error: "Must be a number",}).min(1,{message:"Minimum 1 faculty required"})),
-    shiftDates: z.array(z.string()),
+    shiftDates: z.array(z.string()),  // Array of dates
   }).superRefine((data, ctx) => {
     data.arrayValues.forEach((value, index) => {
       if (value > data.teachers) {
@@ -288,6 +289,7 @@ export default function Home() {
                           </FormItem>
                         )}
                       />
+                    
                     </CardContent>
                   </Card>
                     ))}
