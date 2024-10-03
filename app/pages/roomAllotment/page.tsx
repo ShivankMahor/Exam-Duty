@@ -14,6 +14,8 @@ import * as XLSX from "xlsx";
 import { array, z } from "zod"
 import { Separator } from "@/components/ui/separator";
 import { assignTeachers } from '../../utility/roomDutyCalculator'
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 type Teacher = {
   name: string;
@@ -31,40 +33,56 @@ export default function RoomAllotment(){
   const [file, setFile] = useState<File | null>(null);
 	const [teacherData, setTeacherData] = useState<Teacher[]>([])
 	const [updatedValues, setUpdatedValues] = useState<any>([])
+	// const formSchema = z.object({
+	// 	roomCount: z.number().min(1,{message:"Atleast 1 Room required"}),
+	// 	shiftCount: z.number().min(1,{message:"Atleast 1 Shift required"}),
+	// 	initialRoomData: z.array(z.object({
+	// 		roomNo : z.number(),
+	// 		roomFloor: z.number(),
+	// 		requiredFaculty : z.number().min(1,{message:"Atlease 1 Faculty is required"}),
+	// 		facultyRequired : z.array(z.number())
+	// 	})),
+	// 	teacherDutyFile : z.any(),
+	// 	headingText1 : z.string(),
+	// 	headingText2 : z.string(),
+	// })
 	const formSchema = z.object({
-		roomCount: z.number().min(1,{message:"Atleast 1 Room required"}),
-		shiftCount: z.number().min(1,{message:"Atleast 1 Shift required"}),
-		initialRoomData: z.array(z.object({
-			roomNo : z.number(),
-			roomFloor : z.number(), 
-			requiredFaculty : z.number().min(1,{message:"Atlease 1 Faculty is required"}),
-			facultyRequired : z.array(z.number())
-		})),
-		teacherDutyFile : z.any()
-	})
+		roomCount: z.number().min(1, { message: "At least 1 Room is required" }),
+		initialRoomData: z.array(
+			z.object({
+				roomNo: z.number(), // Room number must be a number
+				roomFloor: z.string(), // Assuming numeric floor values
+				requiredFaculty: z.number().min(1, { message: "At least 1 Faculty is required" }),
+				facultyRequired: z.array(z.number()),
+			})
+		),
+		teacherDutyFile: z.any(),
+		headingText1: z.string(),
+		headingText2: z.string(),
+	});
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues:{
 			roomCount: 1,
-			shiftCount: 1,
+			headingText1: "DUTY CHART OF MID-I SEMESTER EXAMINATION SEPTEMBER-2024",
+			headingText2: "DATE: 18.09.2024 to 20-09-2024, TIME 09:30 AM TO 10:30 AM ( 1st SHIFT) , 12:00 NN TO 01:00 PM ( 2st SHIFT )& 3:00 PM TO 04:00 PM(3rd Shift)",
 			initialRoomData : [
-				{
-					roomNo : 1,
-					roomFloor : 1,
-					requiredFaculty : 2,
-					facultyRequired : Array(shifts).fill(2),
-				}
+				// {
+				// 	roomNo : undefined,
+				// 	roomFloor : 1,
+				// 	requiredFaculty : 2,
+				// 	facultyRequired : Array(shifts).fill(2),
+				// }
 			],
+
 		}
 	})
 
 	async function updateCounts(values: z.infer<typeof formSchema>){
-		console.log("values Before: ",values)
 		const correctedValues = values.initialRoomData.map(room => {
 			const updatedFacultyRequired = room.facultyRequired.map(item => (item>0 ? room.requiredFaculty : 0))
 			return { ...room, facultyRequired : updatedFacultyRequired}
 		})
-		console.log("correctedValues After: ",correctedValues)
 		return correctedValues
 	}
 	async function readFileValues(file:File): Promise<FileType> {
@@ -115,7 +133,6 @@ export default function RoomAllotment(){
 					}
 				}
 				const resultsData = {Teacher : Teachers, shiftNames}
-				console.log("resultsData:",resultsData)
 				resolve(resultsData); // Resolve the promise with Teachers array
 			};
 	
@@ -133,66 +150,13 @@ export default function RoomAllotment(){
 		});
 	}
 	
-	// async function readFileValues(){
-	// 	const Teachers:Teacher[] = []
-	// 	const reader = new FileReader();
-	// 	reader.onload = async (e)=>{
-	// 		const result = e.target?.result;
-	// 		if(!result){
-	// 			console.error("Error: No result from FileReader");
-  //       return;
-	// 		}
-
-	// 		const workbook = XLSX.read(result,{type:"binary"})
-	// 		const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-	// 		if (!worksheet['!ref']) {
-	// 			console.error("Error: Worksheet has no reference range.");
-	// 			return;
-	// 		}
-	// 		const range = XLSX.utils.decode_range(worksheet['!ref']);
-	// 		const lastRow = range.e.r; 
-	// 		const lastCol = range.e.c;
-
-	// 		// console.log("Last Row:", lastRow);
-	// 		// console.log("Last Column:", lastCol);
-
-			
-	// 		for(let i = 2; i<=lastRow-2; i++){
-	// 			const assignedShifts = [];
-	// 			const NameAddress = XLSX.utils.encode_cell({ r: i, c: 1 });
-  //   		for (let k = 3; k < 4; k++) {
-	// 				const cellAddress = XLSX.utils.encode_cell({ r: i, c: k });  // Convert row and column to A1-style notation
-	// 				const cell = worksheet[cellAddress];  // Access the cell using the A1-style address
-	// 				if (cell) {
-	// 					assignedShifts.push(cell.v);  // Push the cell value if it exists
-	// 				} else {
-	// 					assignedShifts.push(null);  // Push null or handle empty cells
-	// 				}
-  //   		}
-	// 			const Name = worksheet[NameAddress].v;
-  //   		// console.log(`Assigned shifts for row ${i}:`, assignedShifts);
-	// 			Teachers.push({name:Name, assignedShifts})
-	// 		}
-	// 		// console.log(Teachers)
-	// 	}
-	// 	reader.onerror = () => {
-	// 		console.error("Error reading the file");
-	// 	};
-	// 	if(!file){
-	// 		console.log("No file found")
-	// 		return;
-	// 	}
-	// 	reader.readAsBinaryString(file);
-	// 	return Teachers
-	// }
 	async function onSubmit(values: z.infer<typeof formSchema>) {
+		console.log("Values:",values)
 		const updatedValues = await updateCounts(values)
 		setUpdatedValues(updatedValues)
 		const tempTeachers = JSON.parse(JSON.stringify(teacherData)); 
 		const temp = JSON.parse(JSON.stringify(updatedValues)); 
 		const result = await assignTeachers(tempTeachers,temp)
-		console.log("Prev Data",teacherData,result,updatedValues)
-
 		const dutyData = shiftNameArray?.map((_, shiftIndex) => {
 			const x = result.map((room: any, roomIndex: number) => {
 				if (room.allotedTeachers[shiftIndex].length === 0) {
@@ -207,12 +171,12 @@ export default function RoomAllotment(){
 		
 			return x;
 		});
-		console.log("DUty data in frontend",dutyData)
 		try {
       const response = await axios.post('http://localhost:3000/pages/roomAllotment/api', 
 				{
 					dutyData,
-					shiftNameArray
+					shiftNameArray,
+					text: {headingText1 : values.headingText1, headingText2: values.headingText2}
 				},
 				{ // Important for handling binary data
         	responseType: 'blob',
@@ -302,14 +266,14 @@ export default function RoomAllotment(){
 		setTeacherData(teachersData.Teacher)
   }
 	return (
-		<div className="min-h-screen flex justify-center items-center">
-			<Card>
+		<div className="h-screen flex justify-center items-center">
+			<Card className='mt-8'>
 				<CardHeader>
 					<CardTitle>Room Allocation Form</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<Form {...form}>
-						<form onSubmit={form.handleSubmit(onSubmit)} className="flex gap-4 flex-wrap">
+						<form onSubmit={form.handleSubmit(onSubmit, (error) => console.log("Validation Error:", error))}  className="flex gap-4 flex-wrap">
 							<Card>
 								<CardContent  className="mt-4 space-y-2">
 									<FormField
@@ -336,31 +300,37 @@ export default function RoomAllotment(){
 											</FormItem>
 										)}
 									/>
-									{/* <FormField
+									<FormField
 										control={form.control}
-										name="shiftCount"
+										name="headingText1"
 										render={({field})=>(
 											<FormItem className="space-y-1">
-												<FormLabel>Number of Shifts</FormLabel>
-												<FormControl>
-													<Input
-														type="number"
-														min={1}
-														required = {true}
-														{...field}
-														onChange={(e)=>{
-															const val = e.target.value ? Number(e.target.value) : undefined;
-															field.onChange(val); 
-															setShifts(val)
-														}}
-														contentEditable={false}
-													/>
-												</FormControl>
-												<FormDescription>Enter the total number shifts.</FormDescription>
+												<FormLabel>Heading Line 1</FormLabel>
+													<FormControl>
+														<Textarea
+															{...field}
+														/>
+													</FormControl>
 												<FormMessage/>
 											</FormItem>
 										)}
-									/> */}
+									/>
+									<FormField
+										control={form.control}
+										name="headingText2"
+										render={({field})=>(
+											<FormItem className="space-y-1">
+												<FormLabel>Heading Line 2</FormLabel>
+												<FormControl>
+													<Textarea
+														className="min-h-28"
+														{...field}
+													/>
+												</FormControl>
+												<FormMessage/>
+											</FormItem>
+										)}
+									/>
 									 <FormField
                     control={form.control}
                     name="teacherDutyFile"
@@ -377,7 +347,7 @@ export default function RoomAllotment(){
                             required={true}
                           />
                         </FormControl>
-                        <FormDescription>Excel File Contains the list of all facilities</FormDescription>
+                        <FormDescription>Upload the excel file generated from Generate Duties</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -452,22 +422,17 @@ export default function RoomAllotment(){
 																<FormLabel className="min-w-fit pt-2">Floor</FormLabel>
 																<FormControl>
 																	<Input
-																		type="number"
-																		min={0}
+																		type="text"
 																		className="h-9"
 																		placeholder="Floor"
 																		required = {true}
 																		{...field}
-																		onChange={(e)=>{
-																			const val = e.target.value ? Number(e.target.value) : undefined;
-																			field.onChange(val); 
-																		}}
 																	/>
 																</FormControl>
 																<FormMessage/>
 															</FormItem>
 														)}
-													/>
+													/> 
 												</div>												
 												<div>
 													<Card className="grid mt-4">	
