@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import * as XLSX from "xlsx";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { main } from "./utility/dutyCalculator.js";
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.jsx";
@@ -34,18 +34,17 @@ export default function Home() {
     });
   });
   const [loading, setLoading] = useState(false);
-  const [shifts, setShifts] = useState<number | null>(1);
+  const [shifts, setShifts] = useState<number | undefined>(undefined);
   const [file, setFile] = useState<File | null>(null);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      teachers: 1,
-      shifts: 1,
-      arrayValues: [],
-      shiftDates: [],
-    },
+    // defaultValues: {
+    //   teachers: ,
+    //   shifts: 1,
+    //   arrayValues: [],
+    //   shiftDates: [],
+    // },
   });
-
   //Handle file Upload
   function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>){
     const file = e.target.files?.[0];
@@ -161,7 +160,7 @@ export default function Home() {
                             type="number"
                             {...field}
                             onChange={(e) => {
-                              const value = e.target.value ? Number(e.target.value) : 0; // Convert to number
+                              const value = e.target.value ? Number(e.target.value) : undefined; // Convert to number
                               field.onChange(value); // Set the field value
                             }}
                             min={1}
@@ -188,7 +187,7 @@ export default function Home() {
                             placeholder="Enter Number of Shifts"
                             {...field}
                             onChange={(e)=>{
-                              const value = e.target.value ? Number(e.target.value) : 0
+                              const value = e.target.value ? Number(e.target.value) : undefined
                               field.onChange(value)
                               setShifts(value)
                             }}
@@ -236,13 +235,13 @@ export default function Home() {
                   </div>
                 </CardContent>
               </Card>
-              {shifts !== null && (
+              {shifts && (
                 <ScrollArea className="h-[400px]  whitespace-nowrap rounded-md border">
                 <div className="grid gap-2 p-2 m-2">
                   <h3 className="text-lg font-medium">Shift Details</h3>
                   <CardDescription>Enter Required Faculties on Shifts</CardDescription>
-                  {Array.from({ length: shifts }, (_, index) => (
-                    <Card key={index*10}>
+                  {shifts && Array.from({ length: shifts }, (_, index) => (
+                    <Card key={`it${index}`}>
                       <h1 className="mt-6 mx-6 mb-2">Shift {index+1}</h1>
                       <CardContent className="flex gap-2">
                     <FormField

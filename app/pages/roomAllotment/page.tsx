@@ -50,7 +50,7 @@ export default function RoomAllotment(){
 		roomCount: z.number().min(1, { message: "At least 1 Room is required" }),
 		initialRoomData: z.array(
 			z.object({
-				roomNo: z.number(), // Room number must be a number
+				roomNo: z.number().min(1,{message: "Minumum 1 room is required"}), // Room number must be a number
 				roomFloor: z.string(), // Assuming numeric floor values
 				requiredFaculty: z.number().min(1, { message: "At least 1 Faculty is required" }),
 				facultyRequired: z.array(z.number()),
@@ -63,7 +63,7 @@ export default function RoomAllotment(){
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues:{
-			roomCount: 1,
+			// roomCount: 1,
 			headingText1: "DUTY CHART OF MID-I SEMESTER EXAMINATION SEPTEMBER-2024",
 			headingText2: "DATE: 18.09.2024 to 20-09-2024, TIME 09:30 AM TO 10:30 AM ( 1st SHIFT) , 12:00 NN TO 01:00 PM ( 2st SHIFT )& 3:00 PM TO 04:00 PM(3rd Shift)",
 			initialRoomData : [
@@ -266,7 +266,7 @@ export default function RoomAllotment(){
 		setTeacherData(teachersData.Teacher)
   }
 	return (
-		<div className="h-screen flex justify-center items-center">
+		<div className="min-h-screen flex justify-center items-center">
 			<Card className='mt-8'>
 				<CardHeader>
 					<CardTitle>Room Allocation Form</CardTitle>
@@ -285,7 +285,7 @@ export default function RoomAllotment(){
 												<FormControl>
 													<Input
 														type="number"
-														min={1}
+														min={0}
 														required = {true}
 														{...field}
 														onChange={(e)=>{
@@ -293,6 +293,7 @@ export default function RoomAllotment(){
 															field.onChange(val);
 															setRooms(val) 
 														}}
+														placeholder='Enter total no of rooms'
 													/>
 												</FormControl>
 												<FormDescription>Specify the number of rooms to be allocated.</FormDescription>
