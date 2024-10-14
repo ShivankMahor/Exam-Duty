@@ -15,24 +15,23 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.jsx";
 
 export default function Home() {
   const formSchema = z.object({
-    teachers: z
-      .number()
-      .min(1, { message: "There should be at least 1 teacher" }),
+    teachers: z.number(),
     teacherFile: z.any(),
     shifts: z.number().min(1, { message: "Size must be at least 1" }),
     arrayValues: z.array(z.number({required_error: "Faculty no is required",invalid_type_error: "Must be a number",}).min(1,{message:"Minimum 1 faculty required"})),
     shiftDates: z.array(z.string()),  // Array of dates
-  }).superRefine((data, ctx) => {
-    data.arrayValues.forEach((value, index) => {
-      if (value > data.teachers) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: [`arrayValues`, index], // Dynamically setting the path based on the index
-          message: "The number of faculties required should not be more than the number of teachers",
-        });
-      }
-    });
-  });
+  })
+  // .superRefine((data, ctx) => {
+  //   data.arrayValues.forEach((value, index) => {
+  //     if (value > data.teachers) {
+  //       ctx.addIssue({
+  //         code: z.ZodIssueCode.custom,
+  //         path: [`arrayValues`, index], // Dynamically setting the path based on the index
+  //         message: "The number of faculties required should not be more than the number of teachers",
+  //       });
+  //     }
+  //   });
+  // });
   const [loading, setLoading] = useState(false);
   const [shifts, setShifts] = useState<number | undefined>(undefined);
   const [file, setFile] = useState<File | null>(null);
@@ -48,11 +47,14 @@ export default function Home() {
   //Handle file Upload
   function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>){
     const file = e.target.files?.[0];
+    if (!file) {
+      console.error("No file selected");
+      return;
+    }
     if(file){
       console.log(file)
       setFile(file)
-    }else{
-      console.log("No file")
+      console.log("file uploaded")
     }
     if (!file) return;
     const fileType = file.name.split('.').pop()?.toLowerCase();
@@ -73,6 +75,7 @@ export default function Home() {
   }
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true)
+    console.log("SUBMIT")
     try {
       console.log("Submit", values, file);
       
@@ -136,6 +139,24 @@ export default function Home() {
       setLoading(false)
     }
   }
+
+
+  function updateShiftArrays(newShifts:any) {
+    // Adjust `arrayValues` length
+    if(!form.getValues('arrayValues')){
+      return;
+    }
+    form.setValue(
+      "arrayValues",
+      [...form.getValues("arrayValues").slice(0, newShifts)] // Limit array to new shift count
+    );
+    
+    // Adjust `shiftDates` length
+    form.setValue(
+      "shiftDates",
+      [...form.getValues("shiftDates").slice(0, newShifts)] // Limit array to new shift count
+    );
+  }
   return (
     <div className="min-h-screen flex justify-center items-center">
       <Card>
@@ -186,10 +207,20 @@ export default function Home() {
                             type="number"
                             placeholder="Enter Number of Shifts"
                             {...field}
-                            onChange={(e)=>{
-                              const value = e.target.value ? Number(e.target.value) : undefined
-                              field.onChange(value)
-                              setShifts(value)
+                            // onChange={(e)=>{
+                            //   const value = e.target.value ? Number(e.target.value) : undefined
+                            //   field.onChange(value)
+                            //   setShifts(value)
+                            // }}
+                            onChange={(e) => {
+                              const value = e.target.value ? Number(e.target.value) : undefined;
+                              field.onChange(value);
+                              setShifts(value);
+                              // Handle shifts change
+                              if (value) {
+                                updateShiftArrays(value); // Update the arrays when shifts change
+                                // Also update shifts state
+                              }
                             }}
                             min={1}
                             required={true}
@@ -212,7 +243,10 @@ export default function Home() {
                             placeholder="Upload Excel file (.xlsx)"
                             {...field}
                             accept=".xlsx"
-                            onChange={handleFileUpload}
+                            onChange={(e) => {
+                              handleFileUpload(e); 
+                              field.onChange(e); // Update form state with the file
+                            }}
                             // required={true}
                           />
                         </FormControl>
@@ -227,7 +261,7 @@ export default function Home() {
                     </Button>
                     <a
                       href={`/Templates/Data Template.xlsx`}
-                      download={`$Data Template.xlsx`}
+                      download={`Data Template.xlsx`}
                       className="text-sm underline text-blue-500 ml-4"
                     >
                       Download Template
