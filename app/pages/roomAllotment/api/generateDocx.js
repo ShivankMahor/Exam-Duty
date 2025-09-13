@@ -246,7 +246,7 @@ export default async function generateDocx(dutyData,shiftNames,text){
 		return tableRows
 		}
 	)
-	const imagePath = path.join(__dirname, "../../../../../../app/images/image.png");
+	const imagePath = path.join(process.cwd(), "public/image.png");
 	console.log(__dirname)
 	console.log(imagePath)
 	const sections = dutyData.map((shift, shiftIndex) => ({
