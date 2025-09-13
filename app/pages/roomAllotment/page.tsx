@@ -172,7 +172,7 @@ export default function RoomAllotment(){
 			return x;
 		});
 		try {
-      const response = await axios.post('http://localhost:3000/pages/roomAllotment/api', 
+      const response = await axios.post('https://exam-duty.vercel.app/pages/roomAllotment/api', 
 				{
 					dutyData,
 					shiftNameArray,
